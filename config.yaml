@@ -1,0 +1,97 @@
+llm:
+  provider: ollama
+  model: qwen2.5:3b         # 3B params – matches project proposal (Qwen3 4B direction)
+  base_url: http://localhost:11434
+  temperature: 0.3           # Low temp for factual banking answers
+  max_tokens: 600
+  stream: true
+  fallback_model: mistral:latest
+
+embeddings:
+  model: all-MiniLM-L6-v2   # 384-dim, fast, sentence-transformers
+  chunk_size: 400            # Characters per chunk (Q+A pairs are short, no chunking needed usually)
+  chunk_overlap: 50
+
+qdrant:
+  mode: file                 # Options: memory | file  (use 'memory' for quick testing)
+  path: ./data/qdrant_store  # Persists between runs when mode=file
+  collection_name: nust_bank_kb
+  vector_size: 384           # Matches all-MiniLM-L6-v2 output dimension
+
+retrieval:
+  top_k: 5                   # Number of context chunks to retrieve per query
+  score_threshold: 0.25      # Minimum cosine similarity to include a result
+
+guardrails:
+  max_input_length: 1000
+  min_relevance_score: 0.25  # Below this = off-topic
+  blocked_topics:
+    - weapons
+    - drugs
+    - hacking
+    - violence
+    - illegal
+  banking_keywords:
+    - account
+    - balance
+    - transfer
+    - loan
+    - card
+    - bank
+    - finance
+    - deposit
+    - savings
+    - mortgage
+    - payment
+    - interest
+    - profit
+    - rate
+    - investment
+    - credit
+    - debit
+    - insurance
+    - remittance
+    - digital
+    - mobile
+    - nust
+    - atm
+    - ibft
+    - raast
+    - beneficiary
+    - cheque
+    - statement
+    - account
+    - password
+    - mpin
+    - otp
+    - transaction
+    - limit
+    - fee
+    - charge
+    - open
+    - close
+    - activate
+    - deactivate
+    - apply
+    - eligible
+    - document
+    - minimum
+    - maximum
+    - currency
+    - pkr
+    - usd
+    - top-up
+    - bill
+    - utility
+
+data:
+  raw_dir: ./data/raw
+  processed_dir: ./data/processed
+  knowledge_base_file: knowledge_base.json
+
+app:
+  title: "NUST Bank AI Assistant"
+  subtitle: "Your intelligent banking support partner"
+  bank_name: "NUST Bank"
+  helpline: "+92 (51) 111 000 494"
+  support_email: "support@NUSTbank.com.pk"
