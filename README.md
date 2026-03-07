@@ -2,6 +2,9 @@
 
 An AI-powered customer service chatbot for NUST Bank, built with a **Retrieval-Augmented Generation (RAG)** pipeline. The assistant answers customer queries about bank products, accounts, loans, digital services, and more using the official NUST Bank knowledge base.
 
+### Architecture Diagram
+![WhatsApp Image 2026-03-07 at 3 05 33 PM](https://github.com/user-attachments/assets/f25c7b08-511c-48f5-b85c-17b760a0e9a9)
+![WhatsApp Image 2026-03-07 at 3 05 33 PM (1)](https://github.com/user-attachments/assets/7ea7ac9f-2132-4034-b120-5f59de7bfb75)
 
 ## Setup & Installation
 
@@ -55,3 +58,5 @@ Open [http://localhost:8501](http://localhost:8501) in your browser.
 All settings live in `config.yaml`:
 
 ---
+
+
