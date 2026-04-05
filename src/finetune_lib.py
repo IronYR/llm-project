@@ -135,6 +135,14 @@ def build_sft_training_args(ft: dict[str, Any], output_dir: Path) -> SFTConfig:
         and getattr(torch.backends, "mps", None)
         and torch.backends.mps.is_available()
     )
+    # HuggingFace TrainingArguments forbids both fp16 and bf16 True. Prefer bf16 on CUDA when supported.
+    if torch.cuda.is_available() and torch.cuda.is_bf16_supported():
+        fp16, bf16 = False, True
+    elif torch.cuda.is_available() or use_mps:
+        fp16, bf16 = True, False
+    else:
+        fp16, bf16 = False, False
+
     return SFTConfig(
         output_dir=str(output_dir),
         num_train_epochs=ft.get("num_epochs", 2),
@@ -144,8 +152,8 @@ def build_sft_training_args(ft: dict[str, Any], output_dir: Path) -> SFTConfig:
         logging_steps=10,
         logging_first_step=True,
         save_strategy="epoch",
-        fp16=bool(torch.cuda.is_available() or use_mps),
-        bf16=bool(torch.cuda.is_available() and torch.cuda.is_bf16_supported()),
+        fp16=fp16,
+        bf16=bf16,
         max_length=ft.get("max_seq_length", 2048),
         dataset_text_field="text",
         packing=False,
