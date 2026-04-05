@@ -1,11 +1,37 @@
 llm:
   provider: ollama
-  model: qwen2.5:3b         # 3B params – matches project proposal (Qwen3 4B direction)
+  backend: ollama
+  model: qwen2.5:3b
   base_url: http://localhost:11434
-  temperature: 0.3           # Low temp for factual banking answers
+  temperature: 0.3
   max_tokens: 600
   stream: true
   fallback_model: mistral:latest
+  hf_model_id: Qwen/Qwen2.5-3B-Instruct
+  use_lora: true
+  load_in_4bit: true
+
+finetune:
+  base_model_id: Qwen/Qwen2.5-3B-Instruct
+  output_dir: ./models/lora_nust_bank
+  num_epochs: 2
+  batch_size: 1
+  gradient_accumulation_steps: 8
+  learning_rate: 2.0e-4
+  max_seq_length: 2048
+  use_4bit: true
+  use_mps: false   # Mac: keep false to avoid MPS "Invalid buffer size" on large loads; use CUDA for fast 4-bit
+  lora_r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  lora_target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
 
 embeddings:
   model: all-MiniLM-L6-v2   # 384-dim, fast, sentence-transformers

@@ -8,9 +8,11 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).parent))
 
+from typing import Any
+
 from src.data_ingestion import load_knowledge_base, ingest_new_document
 from src.embeddings import EmbeddingIndex
-from src.llm_client import OllamaClient
+from src.llm_backend import get_llm_backend
 from src.rag_pipeline import RAGPipeline
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(name)s | %(message)s")
@@ -30,8 +32,8 @@ def get_index(config: dict) -> EmbeddingIndex:
 
 
 @st.cache_resource(show_spinner=False)
-def get_llm(config: dict) -> OllamaClient:
-    return OllamaClient(config)
+def get_llm(config: dict) -> Any:
+    return get_llm_backend(config)
 
 
 def get_pipeline(config: dict) -> RAGPipeline:
@@ -246,7 +248,7 @@ def _render_message(role: str, content: str, sources: list | None = None) -> Non
 
     if sources:
         cats = list(dict.fromkeys(r["category"] for r in sources if r.get("category")))[:4]
-        pills = "".join(f'<span class="source-pill">📂 {c}</span>' for c in cats)
+        pills = "".join(f'<span class="source-pill">{c}</span>' for c in cats)
         st.markdown(f'<div style="margin-left:48px;margin-top:-8px;">{pills}</div>',
                     unsafe_allow_html=True)
 
@@ -270,21 +272,38 @@ def _render_sources_expander(sources: list) -> None:
                 st.markdown("---")
 
 
-def _render_sidebar(cfg: dict, index: EmbeddingIndex, llm: OllamaClient) -> None:
+def _render_sidebar(cfg: dict, index: EmbeddingIndex, llm: Any) -> None:
     with st.sidebar:
         st.markdown("## System Status")
 
         # LLM status
         if llm.is_available():
-            st.markdown(f"<span class='badge-green'>● LLM Online</span> — `{cfg['llm']['model']}`",
-                        unsafe_allow_html=True)
+            lbl = cfg["llm"].get("hf_model_id", cfg["llm"]["model"])
+            if cfg["llm"].get("backend") == "hf":
+                st.markdown(
+                    f"<span class='badge-green'>● LLM Online (HF)</span> — `{lbl}`",
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.markdown(
+                    f"<span class='badge-green'>● LLM Online</span> — `{cfg['llm']['model']}`",
+                    unsafe_allow_html=True,
+                )
         else:
-            st.markdown(f"<span class='badge-red'>● LLM Offline</span> — `{cfg['llm']['model']}`",
-                        unsafe_allow_html=True)
-            st.warning(
-                f"Ollama not running or model not found.\n\n"
-                f"**Fix:**\n```\nollama serve\nollama pull {cfg['llm']['model']}\n```"
+            st.markdown(
+                f"<span class='badge-red'>● LLM Offline</span> — `{cfg['llm'].get('model', '')}`",
+                unsafe_allow_html=True,
             )
+            if cfg["llm"].get("backend") == "hf":
+                st.warning(
+                    "Hugging Face model failed to load. Check GPU memory, "
+                    "install CUDA bitsandbytes for 4-bit, or set llm.backend to ollama."
+                )
+            else:
+                st.warning(
+                    f"Ollama not running or model not found.\n\n"
+                    f"Fix:\n```\nollama serve\nollama pull {cfg['llm']['model']}\n```"
+                )
 
         # Index status
         stats = index.get_stats()
@@ -359,7 +378,7 @@ def _render_sidebar(cfg: dict, index: EmbeddingIndex, llm: OllamaClient) -> None
                     fresh_index.build(docs)
                     # Invalidate cached index
                     st.cache_resource.clear()
-                    st.success(f"✅ Index rebuilt with {len(docs)} documents.")
+                    st.success(f"Index rebuilt with {len(docs)} documents.")
                     st.rerun()
                 except Exception as e:
                     st.error(f"Rebuild failed: {e}")
@@ -376,7 +395,7 @@ def _render_sidebar(cfg: dict, index: EmbeddingIndex, llm: OllamaClient) -> None
 
         # ── Clear chat ──
         st.markdown("---")
-        if st.button("🗑️ Clear Chat History", key="btn_clear"):
+        if st.button("Clear Chat History", key="btn_clear"):
             st.session_state.messages = []
             st.rerun()
 
@@ -384,7 +403,6 @@ def _render_sidebar(cfg: dict, index: EmbeddingIndex, llm: OllamaClient) -> None
 def main() -> None:
     st.set_page_config(
         page_title="NUST Bank AI Assistant",
-        page_icon="🏦",
         layout="wide",
         initial_sidebar_state="expanded",
     )
@@ -402,7 +420,6 @@ def main() -> None:
         st.warning(
             "The knowledge base index has not been built yet.  \n"
             "Run **`python ingest.py`** in your terminal to ingest the bank data and build the index.",
-            icon="⚠️",
         )
 
     # Sidebar
@@ -436,7 +453,7 @@ def main() -> None:
 
     # ── Suggested questions ──
     if len(st.session_state.messages) <= 1:
-        st.markdown("**💡 Suggested questions:**")
+        st.markdown("**Suggested questions:**")
         suggestions = [
             "What is the NUST Asaan Account?",
             "How do I transfer funds using the mobile app?",
@@ -464,7 +481,7 @@ def main() -> None:
                 key="chat_input",
             )
         with col2:
-            submitted = st.form_submit_button("Send 📨")
+            submitted = st.form_submit_button("Send")
 
     # ── Handle submission ──
     if submitted and user_input.strip():
@@ -491,7 +508,7 @@ def main() -> None:
                     full_response += token
                     bot_placeholder.markdown(
                         f'<div class="chat-row bot">'
-                        f'<div class="avatar bot">🤖</div>'
+                        f'<div class="avatar bot">Bot</div>'
                         f'<div class="bubble bot">{full_response}▌</div>'
                         f'</div>',
                         unsafe_allow_html=True,

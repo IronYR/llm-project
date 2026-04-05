@@ -13,6 +13,7 @@ __pycache__/
 # Generated data (rebuild with: python ingest.py)
 data/qdrant_store/
 data/processed/
+models/
 
 # Jupyter
 .ipynb_checkpoints/

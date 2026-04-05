@@ -76,9 +76,8 @@ class OllamaClient:
 
         except requests.exceptions.ConnectionError:
             raise RuntimeError(
-                "Cannot connect to Ollama. Make sure Ollama is running:\n"
-                "  ollama serve\n"
-                f"Then pull the model:\n  ollama pull {self.model}"
+                "Cannot connect to Ollama. Run: ollama serve\n"
+                f"Then: ollama pull {self.model}"
             )
         except Exception as e:
             if target_model != self.fallback:
@@ -123,12 +122,12 @@ class OllamaClient:
 
         except requests.exceptions.ConnectionError:
             yield (
-                "\n\n **Cannot connect to Ollama.** "
-                f"Please run `ollama serve` and `ollama pull {self.model}`."
+                "\n\nCannot connect to Ollama. Run ollama serve and "
+                f"ollama pull {self.model}"
             )
         except Exception as e:
             if target_model != self.fallback:
                 logger.warning("Streaming with %s failed, retrying with %s", target_model, self.fallback)
                 yield from self.stream_generate(system_prompt, user_prompt, model=self.fallback)
             else:
-                yield f"\n\n LLM error: {e}"
+                yield f"\n\nLLM error: {e}"

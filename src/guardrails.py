@@ -51,7 +51,7 @@ _OUTPUT_PII_PATTERNS: list[tuple[re.Pattern, str]] = [
     (re.compile(r"\b\d{4}[-\s]\d{4}[-\s]\d{4}[-\s]?\d{0,4}\b"), "[ACCOUNT# REDACTED]"),
 ]
 
-=
+
 @dataclass
 class GuardrailResult:
     allowed:      bool
@@ -116,7 +116,7 @@ def check_input(query: str, config: dict) -> GuardrailResult:
     warning = ""
     if _INPUT_PII_RE.search(query):
         warning = (
-            "⚠️ Your message appears to contain sensitive personal information "
+            "Your message appears to contain sensitive personal information "
             "(CNIC, account number, or phone number). "
             "Please avoid sharing sensitive data in chat for your security."
         )
