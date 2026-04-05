@@ -28,7 +28,7 @@ Use your real GitHub username or org and repo name if the fork is not called `ll
 1. Push this repo to GitHub (notebooks must live there for the Colab badge to open the right file).
 2. Open the notebook from GitHub (badge) or **File → Upload notebook** and upload the `.ipynb` (then you must still run the clone cell so `src/` exists).
 3. **Runtime → Change runtime type → GPU** (recommended for `02_lora_finetuning.ipynb`).
-4. Run the bootstrap cell: clones into `/content/llm-project` and `pip install -r requirements.txt`.
+4. Run the bootstrap cell: clones into `/content/llm-project` and installs from **`requirements-colab.txt`** (via `colab_pip_install`) so Colab’s preinstalled **torch/torchvision** are not replaced by a mismatched pip wheel.
 5. Run `ensure_knowledge_base`: on Colab, upload the course **XLSX** + **JSON** when prompted; `ingest.py` runs and builds `knowledge_base.json` and the Qdrant index.
 
 Helpers live in [`src/colab_setup.py`](../src/colab_setup.py) (`ensure_knowledge_base`, `is_colab`).
@@ -36,3 +36,16 @@ Helpers live in [`src/colab_setup.py`](../src/colab_setup.py) (`ensure_knowledge
 **Saving LoRA weights:** Colab disks are ephemeral. After training, copy `models/lora_nust_bank` to [Google Drive](https://colab.research.google.com/notebooks/io.ipynb) (mount Drive in a cell) or download the folder via the Colab file browser.
 
 **Hugging Face:** If downloads are slow, set a [token](https://huggingface.co/settings/tokens) in Colab: `from huggingface_hub import login; login()` in a cell before loading the model.
+
+### PyTorch / torchvision CUDA mismatch on Colab
+
+If you see `PyTorch and torchvision were compiled with different CUDA major versions` or `Could not import module 'PreTrainedModel'` from `transformers`, the cause is usually **`pip install -r requirements.txt` upgrading `torch` while leaving an older `torchvision`**. This repo uses **`requirements-colab.txt`** (no `torch` line) plus **`colab_pip_install()`** in the first notebook cell to avoid that.
+
+**If your runtime is already broken:** run **Runtime → Restart runtime**, pull the latest repo, run the bootstrap cell again. Or run once:
+
+```python
+from src.colab_setup import colab_repair_torch_stack
+colab_repair_torch_stack()
+```
+
+Then **restart the runtime** and continue (re-run bootstrap if needed).

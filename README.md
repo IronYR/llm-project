@@ -104,6 +104,7 @@ notebooks/                # Jupyter: data prep, LoRA SFT, retrieval benchmark
 evaluation/run_eval.py    # Retrieval metrics
 app.py                    # Streamlit UI
 config.yaml
+requirements-colab.txt    # Colab: deps without torch (avoids CUDA wheel mismatch)
 src/finetune_lib.py       # Shared SFT helpers (CLI + notebooks)
 src/colab_setup.py        # Colab ingest / knowledge-base check for notebooks
 src/data_ingestion.py

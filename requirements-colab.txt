@@ -1,0 +1,20 @@
+# Google Colab: do not list `torch` here — upgrading PyTorch via pip while leaving an old
+# `torchvision` breaks imports (CUDA major mismatch) and causes
+# ModuleNotFoundError: PreTrainedModel in transformers.
+# Colab already ships torch/torchvision; we only add the rest of the stack.
+sentence-transformers>=3.0.0
+qdrant-client>=1.9.0
+requests>=2.31.0
+openpyxl>=3.1.2
+pandas>=2.0.0
+pyyaml>=6.0.1
+streamlit>=1.35.0
+transformers>=4.40.0
+peft>=0.11.0
+bitsandbytes>=0.43.0
+accelerate>=0.30.0
+datasets>=2.19.0
+trl>=0.9.0
+langgraph>=0.2.0
+jupyter>=1.0.0
+ipykernel>=6.29.0

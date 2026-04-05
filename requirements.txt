@@ -1,3 +1,5 @@
+# Local / fresh venv. On Google Colab use requirements-colab.txt (no torch line) so pip
+# does not replace Colab’s torch/torchvision with mismatched CUDA builds.
 sentence-transformers>=3.0.0
 qdrant-client>=1.9.0
 requests>=2.31.0

@@ -22,6 +22,47 @@ def is_colab() -> bool:
     return "google.colab" in sys.modules
 
 
+def colab_pip_install(root: Path) -> None:
+    """
+    Install project dependencies on Colab without pulling a separate `torch` wheel.
+
+    Use ``requirements-colab.txt`` (no torch line). For local venvs, use ``requirements.txt``.
+    """
+    req = root / "requirements-colab.txt"
+    if not req.is_file():
+        req = root / "requirements.txt"
+    subprocess.run(
+        [sys.executable, "-m", "pip", "install", "-q", "-U", "-r", str(req)],
+        check=True,
+    )
+
+
+def colab_repair_torch_stack() -> None:
+    """
+    If you still see ``PyTorch and torchvision were compiled with different CUDA major
+    versions`` or ``Could not import module 'PreTrainedModel'``, run this then **Runtime →
+    Restart session** (or run once before importing transformers):
+
+    Upgrades ``torch``, ``torchvision``, and ``torchaudio`` together so CUDA builds match.
+    """
+    if not is_colab():
+        return
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pip",
+            "install",
+            "-q",
+            "-U",
+            "torch",
+            "torchvision",
+            "torchaudio",
+        ],
+        check=True,
+    )
+
+
 def _kb_paths(config: dict, root: Path) -> tuple[Path, Path]:
     data_cfg = config["data"]
     processed = root / data_cfg["processed_dir"]
